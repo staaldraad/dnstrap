@@ -8,6 +8,7 @@ import (
         "strconv"
         "syscall"
         "os/signal"
+        "net"
 )
 
 func handleReflect(w dns.ResponseWriter, r *dns.Msg) {
@@ -17,17 +18,17 @@ func handleReflect(w dns.ResponseWriter, r *dns.Msg) {
 
         switch r.Opcode {
         case dns.OpcodeQuery:
-                parseQuery(m)
+                parseQuery(m,w.RemoteAddr())
         }
 
         w.WriteMsg(m)
 }
 
-func parseQuery(m *dns.Msg) {
+func parseQuery(m *dns.Msg, remote net.Addr) {
         for _, q := range m.Question {
                 switch q.Qtype {
                 case dns.TypeA:
-                        fmt.Printf("Query for %s\n", q.Name)
+                        fmt.Printf("Query for [%s] from [%s]\n", q.Name,remote.String())
                         ip := "1.1.1.1" 
                         if ip != "" {
                                 rr, err := dns.NewRR(fmt.Sprintf("%s A %s", q.Name, ip))
